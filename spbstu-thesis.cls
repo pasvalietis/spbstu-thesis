@@ -1,6 +1,6 @@
 \def\filename{spbstu-thesis}
-\def\fileversion{1.0}
-\def\filedate{2019/12/08}
+\def\fileversion{2.0}
+\def\filedate{2021/05/08}
 \def\docdate{2018/12/08}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{spbstu-thesis}[\filedate\space\fileversion\space%
@@ -17,10 +17,14 @@
 \def\enabstractname{Abstract}
 \def\ruabstractname{Аннотация}
 
+\def\bibpath#1{\gdef\@bibpath{#1}}
+
 \def\speciality#1{\gdef\@speciality{#1}}
 \def\acrank#1{\gdef\@acrank{#1}}
+\def\adrank#1{\gdef\@adrank{#1}}
 \def\referee#1{\gdef\@referee{#1}}
 \def\supervisor#1{\gdef\@supervisor{#1}}
+\def\advisor#1{\gdef\@advisor{#1}}
 \def\groupnum#1{\gdef\@groupnum{#1}}
 \def\director#1{\gdef\@director{#1}}
 \def\defyear#1{\gdef\@defyear{#1}}
@@ -53,16 +57,18 @@
 \RequirePackage{subcaption} % Cyrillic appendix counter
 \RequirePackage[nottoc]{tocbibind}
 \RequirePackage{totcount} %To count the number of appendices
-
+\RequirePackage{color}
 \RequirePackage{graphicx}
 \RequirePackage[font=small,singlelinecheck=false,tableposition=top]{caption}
 \captionsetup[table]{font=normalsize,justification=raggedleft,singlelinecheck=off}
+
+\RequirePackage[hidelinks]{hyperref}
+\RequirePackage{csquotes}
 
 % Use russian style for integrals
 \DeclareMathOperator*{\rint}{\ThisStyle{\rotatebox{10}{$\SavedStyle\!\int\!$}}}
 %\DeclareMathOperator*{\rint}{\scalerel*{\rotatebox{15}{$\!\scriptstyle\int\!$}}{\int}}
 \DeclareMathOperator*{\roint}{\ThisStyle{\rotatebox{10}{$\SavedStyle\!\oint\!$}}}
-
 
 \geometry{left=3cm} 
 \geometry{right=1cm} 
@@ -72,6 +78,26 @@
 
 \renewcommand{\vec}[1]{\text{\bf{#1}\normalfont}}
 \newcommand{\vecg}[1]{\boldmath{#1}}
+
+\def\bbljan{Jan}
+\def\bblfeb{Feb}
+\def\bblmar{Mar}
+\def\bblapr{Apr}
+\def\bblmay{May}
+\def\bbljun{Jun}
+\def\bbljul{Jul}
+\def\bblaug{Aug}
+\def\bblsep{Sep}
+\def\bbloct{Oct}
+\def\bblnov{Nov}
+\def\bbldec{Dec}
+
+% значок С++ — используйте команду \cpp
+\newcommand{\cpp}{%
+    C\nolinebreak\hspace{-.05em}%
+    \raisebox{.2ex}{+}\nolinebreak\hspace{-.10em}%
+    \raisebox{.2ex}{+}%
+}
 
 \frenchspacing
 
@@ -200,7 +226,7 @@
 	\refstepcounter{chapter}%
 	\typeout{\@chapapp\space\thechapter.}%
 	\addcontentsline{toc}{chapter}%
-	{\protect\numberline{\thechapter.}#1}%
+	{\protect{\normalfont{\chaptername}~\thechapter.~}#1}%
 	\else
 	\addcontentsline{toc}{chapter}{#1}%
 	\fi
@@ -225,7 +251,7 @@
 		{\filcenter\bfseries\MakeUppercase{\appendixname~\theappnumber:~#1}}
 	\end{center}
 	\addcontentsline{toc}{chapter}%
-	{\protect{\appendixname~\theappnumber:~#1}}
+	{\protect{\normalfont{\appendixname}~\theappnumber:~#1}}
 }
 
 \renewcommand{\titlepage}{%
@@ -241,7 +267,7 @@
 		\begin{adjustwidth}{8cm}{}		
 			\flushleft
 			Работа допущена к защите\\
-			Руководитель ОП\\
+			Директор ВИФШ\\
 			\underline{\hspace{22ex}}~\@director\\
 			«\underline{\hspace{4ex}}» \underline{{\hspace{15ex}}}~\@defyear~г.
 		\end{adjustwidth}		
@@ -261,8 +287,9 @@
 			\begin{table}[ht]
 				%	\centering
 				\begin{tabular}{p{8cm} p{3cm} rp{4cm}}
-					Выполнил:\\ студент~гр.~ \@groupnum{} \normalfont & \hfill & \@author{}\\\\
+					Выполнил:\\ студент~гр.~\@groupnum{} \normalfont & \hfill & \@author{}\\\\
 					Научный Руководитель: \\ \@acrank{} \normalfont& \hfill & \@supervisor{} \\\\
+					Научный Консультант: \\ \@adrank{} \normalfont& \hfill & \@advisor{} \\\\
 				\end{tabular}
 			\end{table}
 		\end{flushleft}		
@@ -271,5 +298,125 @@
 			\@defyear
 		\end{center}
 	}
+
+%%% BEGIN SETUP BIBLIOGRAPHY %%%
+%Настройки взяты из пакета disser и отредактированы для требований ГОСТ
+%https://ctan.org/pkg/disser
+
+\RequirePackage{ifthen}
+\RequirePackage[%
+	backend=biber,% движок
+	bibencoding=utf8,% кодировка bib файла
+	sorting=ntvy,% настройка сортировки списка литературы
+	%style=gost-numeric,% стиль цитирования и библиографии (по ГОСТ)
+	citestyle=numeric-comp,
+	bibstyle=gost-numeric,%numeric-comp,
+	language=autobib,% получение языка из babel/polyglossia, default: autobib % если ставить autocite или auto, то цитаты в тексте с указанием страницы, получат указание страницы на языке оригинала
+	autolang=other,% многоязычная библиография
+	clearlang=true,% внутренний сброс поля language, если он совпадает с языком из babel/polyglossia
+	defernumbers=true,% нумерация проставляется после двух компиляций, зато позволяет выцеплять библиографию по ключевым словам и нумеровать не из большего списка
+	sortcites=true,% сортировать номера затекстовых ссылок при цитировании (если в квадратных скобках несколько ссылок, то отображаться будут отсортированно, а не абы как)
+	doi=true,% Показывать или нет ссылки на DOI
+	movenames=false,
+	%isbn=false,% Показывать или нет ISBN
+	url=false
+]{biblatex}
+
+\DeclareSourcemap{
+	\maps[datatype=bibtex]{
+		\map{
+			\step[fieldset=langid, fieldvalue={tempruorder}]
+		}
+		\map[overwrite]{
+			\step[fieldsource=langid, match=russian, final]
+			\step[fieldsource=presort, 
+			match=\regexp{(.+)}, 
+			replace=\regexp{aa$1}]
+		}
+		\map{
+			\step[fieldsource=langid, match=russian, final]
+			\step[fieldset=presort, fieldvalue={az}]
+		}
+		\map[overwrite]{
+			\step[fieldsource=langid, notmatch=russian, final]
+			\step[fieldsource=presort, 
+			match=\regexp{(.+)}, 
+			replace=\regexp{za$1}]
+		}
+		\map{
+			\step[fieldsource=langid, notmatch=russian, final]
+			\step[fieldset=presort, fieldvalue={zz}]
+		}
+		\map{
+			\step[fieldsource=langid, match={tempruorder}, final]
+			\step[fieldset=langid, null]
+		}
+	}
+}
+
+%http://tex.stackexchange.com/a/141831/79756
+%There is a way to automatically map the language field to the langid field. The following lines in the preamble should be enough to do that.
+%This command will copy the language field into the langid field and will then delete the contents of the language field. The language field will only be deleted if it was successfully copied into the langid field.
+\DeclareSourcemap{ %модификация bib файла перед тем, как им займётся biblatex 
+	\maps{
+		\map{% перекидываем значения полей language в поля langid, которыми пользуется biblatex
+			\step[fieldsource=language, fieldset=langid, origfieldval, final]
+			\step[fieldset=language, null]
+		}
+		\map{% перекидываем значения полей numpages в поля pagetotal, которыми пользуется biblatex
+			\step[fieldsource=numpages, fieldset=pagetotal, origfieldval, final]
+			\step[fieldset=pagestotal, null]
+		}
+		\map{% если в поле medium написано "Электронный ресурс", то устанавливаем поле media. которым пользуется biblatex в значение eresource
+			\step[fieldsource=medium,
+			match=\regexp{Электронный\s+ресурс},
+			final]
+			\step[fieldset=media, fieldvalue=eresource]
+		}
+		\map[overwrite]{% стираем значения всех полей issn
+			\step[fieldset=issn, null]
+		}
+		\map[overwrite]{% стираем значения всех полей abstract, поскольку ими не пользуемся, а там бывают "неприятные" латеху символы
+			\step[fieldsource=abstract]
+			\step[fieldset=abstract,null]
+		}
+		\map[overwrite]{ % переделка формата записи даты
+			\step[fieldsource=urldate,
+			match=\regexp{([0-9]{2})\.([0-9]{2})\.([0-9]{4})},
+			replace={$3-$2-$1$4}, % $4 вставлен исключительно ради нормальной работы программ подсветки синтаксиса, которые некорректно обрабатывают $ в таких конструкциях
+			final]
+		}
+  	    \map[overwrite]{% стираем значения всех полей series
+    	      \step[fieldset=series, null]
+    	}
+		\map[overwrite]{% перекидываем значения полей howpublished в поля organization для типа online
+			\step[typesource=online, fieldsource=howpublished, fieldset=organization, origfieldval, final]
+			\step[fieldset=howpublished, null]
+		}
+		\map[overwrite]{ % добавляем ключевые слова, чтобы различать источники
+			%\perdatasource{biblio/zotero.bib}
+			\step[fieldset=keywords, fieldvalue={biblioother,bibliofull}]
+		}
+	}
+}
+
+\newtotcounter{citenum}
+\makeatletter
+\defbibenvironment{counter} %Env of bibliography
+{\setcounter{citenum}{0}%
+	\renewcommand{\blx@driver}[1]{}%
+} %what is doing at the beginining of bibliography. In your case it's : a. Reset counter b. Say to print nothing when a entry is tested.
+{} %Здесь то, что будет выводиться командой \printbibliography. \thecitenum сюда писать не надо
+{\stepcounter{citenum}} %What is printing / executed at each entry.
+\makeatother
+\defbibheading{counter}{}
+
+%%% Создание команд для вывода списка литературы %%%
+\newcommand*{\insertbibliofull}{
+	\printbibliography[keyword=bibliofull,section=0]
+	\printbibliography[heading=counter,env=counter,section=0,keyword=bibliofull,section=0]
+}
+
+%%% END SETUP BIBLIOGRAPHY %%%
 
 \endinput
